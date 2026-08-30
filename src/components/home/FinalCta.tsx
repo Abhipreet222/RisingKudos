@@ -4,8 +4,8 @@ import LogoTicker from "@/components/ui/LogoTicker";
 
 export default function FinalCta() {
   return (
-    <section className="relative mx-6 mb-16 overflow-hidden md:mx-8">
-      <div className="absolute inset-0 rounded-[32px] overflow-hidden">
+    <section className="relative mx-6 mb-16 overflow-hidden md:mx-8 rounded-[60px]">
+      <div className="absolute inset-0 rounded-[60px] overflow-hidden">
         <Image 
           src="/above footer/box bg.png" 
           alt="Background" 
