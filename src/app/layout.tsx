@@ -30,7 +30,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={cn("h-full", "antialiased", outfit.variable, fraunces.variable, "font-sans", geist.variable)}>
-      <body className="flex min-h-full flex-col bg-cream font-sans text-ink">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Inknut+Antiqua:wght@300;400;500;600;700;800;900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Saira:ital,wght@0,100..900;1,100..900&family=Sora:wght@100..800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="flex min-h-full flex-col bg-cream font-sans text-ink" style={{ fontFamily: "'Google Sans Flex', ui-sans-serif, system-ui, sans-serif" }}>
         <SmoothScroll>
           <Navbar />
           <main className="flex-1">{children}</main>

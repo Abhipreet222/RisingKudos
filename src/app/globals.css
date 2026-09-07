@@ -117,7 +117,9 @@ html {
 body {
   background: var(--cream);
   color: var(--ink);
-  font-family: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Google Sans Flex', ui-sans-serif, system-ui, sans-serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "slnt" 0, "wdth" 100, "GRAD" 0, "ROND" 0;
 }
 
 h1,
