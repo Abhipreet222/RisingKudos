@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Outfit, Geist } from "next/font/google";
 import SmoothScroll from "@/components/providers/SmoothScroll";
+import PageLoader from "@/components/providers/PageLoader";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { site } from "@/content/site";
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="flex min-h-full flex-col bg-cream font-sans text-ink" style={{ fontFamily: "'Google Sans Flex', ui-sans-serif, system-ui, sans-serif" }}>
+        <PageLoader />
         <SmoothScroll>
           <Navbar />
           <main className="flex-1">{children}</main>

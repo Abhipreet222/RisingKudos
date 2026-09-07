@@ -7,6 +7,8 @@ interface Props {
   src: string;
   /** Called with normalised progress 0-1 as scroll drives the GIF */
   onProgress?: (p: number) => void;
+  /** Called once the GIF is fully decoded and first frame is painted */
+  onReady?: () => void;
 }
 
 /**
@@ -22,7 +24,7 @@ export interface ScrollGifHandle {
   setProgress: (p: number) => void;
 }
 
-export default function ScrollGifBackground({ src, onProgress }: Props) {
+export default function ScrollGifBackground({ src, onProgress, onReady }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const handleRef = useRef<ScrollGifHandle | null>(null);
 
@@ -96,13 +98,19 @@ export default function ScrollGifBackground({ src, onProgress }: Props) {
         let savedImageData: ImageData | null = null;
         const bitmaps: ImageBitmap[] = [];
 
-        for (const frame of rawFrames) {
+        const totalFrames = rawFrames.length;
+        for (let fi = 0; fi < totalFrames; fi++) {
+          const frame = rawFrames[fi];
           const { dims, patch, disposalType } = frame;
 
           if (!patch || patch.length !== dims.width * dims.height * 4) {
             if (bitmaps.length > 0) {
               bitmaps.push(await createImageBitmap(bitmaps[bitmaps.length - 1]));
             }
+            // Emit progress even for skipped frames
+            window.dispatchEvent(
+              new CustomEvent("page:progress", { detail: (fi + 1) / totalFrames })
+            );
             continue;
           }
 
@@ -127,6 +135,11 @@ export default function ScrollGifBackground({ src, onProgress }: Props) {
             compCtx.putImageData(savedImageData, 0, 0);
             savedImageData = null;
           }
+
+          // Emit real-time decode progress to the PageLoader
+          window.dispatchEvent(
+            new CustomEvent("page:progress", { detail: (fi + 1) / totalFrames })
+          );
         }
 
         if (!alive) {
@@ -147,6 +160,9 @@ export default function ScrollGifBackground({ src, onProgress }: Props) {
           handleRef.current!;
 
         paintFrame(0); // show first frame immediately
+        // Signal the PageLoader that the GIF is ready
+        window.dispatchEvent(new CustomEvent("page:ready"));
+        onReady?.();
       } catch (err) {
         console.error("[ScrollGifBackground] Failed to decode GIF:", err);
       }
