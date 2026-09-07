@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { navLinks, site } from "@/content/site";
 import { cn } from "@/lib/cn";
 import AuroraButton from "@/components/ui/AuroraButton";
@@ -28,14 +29,15 @@ export default function Navbar() {
         )}
       >
         <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span
-            className={cn(
-              "grid place-items-center rounded-full bg-coral text-white transition-all duration-[400ms]",
-              scrolled ? "h-8 w-8 text-xs" : "h-10 w-10 text-sm",
-            )}
-          >
-            RK
-          </span>
+          <Image
+            src="/logo.png"
+            alt="Rising Kudos logo"
+            width={scrolled ? 42 : 52}
+            height={scrolled ? 42 : 52}
+            priority
+            className="transition-all duration-[400ms] shrink-0"
+            style={{ objectFit: "contain" }}
+          />
           <span
             className={cn(
               "font-display font-semibold tracking-tight text-ink transition-all duration-[400ms]",

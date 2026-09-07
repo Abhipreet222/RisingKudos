@@ -97,7 +97,7 @@ export default function Hero() {
 
         {/* GIF background — fills the section */}
         <div ref={canvasWrapRef} className="absolute inset-0 origin-center">
-          <ScrollGifBackground src={HERO_BG} onReady={() => { /* page:ready already dispatched inside ScrollGifBackground */ }} />
+          <ScrollGifBackground src={HERO_BG} />
           {/* Gradient overlays — identical to original */}
           <div className="absolute inset-0 bg-gradient-to-r from-cream/88 via-cream/45 to-cream/10" />
           <div className="absolute inset-0 bg-gradient-to-t from-cream/50 via-transparent to-cream/20" />
