@@ -20,6 +20,7 @@ export const subjects = [
     blurb: "Reading, writing and speaking that feel like conversation, not drills.",
     detail:
       "We build fluency through stories, discussion and gentle structure — so children enjoy language, not just pass papers.",
+    image: "/subject/english.png",
   },
   {
     slug: "maths",
@@ -28,6 +29,7 @@ export const subjects = [
     blurb: "Number sense first. Confidence follows.",
     detail:
       "Tutors slow down where it matters, make the abstract concrete, and never rush a child past a shaky foundation.",
+    image: "/subject/maths.png",
   },
   {
     slug: "science",
@@ -36,6 +38,7 @@ export const subjects = [
     blurb: "Curiosity-led Biology, Chemistry and Physics.",
     detail:
       "We treat science as wonder with a method: questions, experiments in thought, and explanations that stick.",
+    image: "/subject/science.png",
   },
   {
     slug: "11-plus",
@@ -44,6 +47,7 @@ export const subjects = [
     blurb: "Preparation without pressure.",
     detail:
       "Familiarisation, reasoning practice and pastoral care — never countdown clocks or exam-hall imagery.",
+    image: "/subject/11+.png",
   },
   {
     slug: "gcse",
@@ -52,6 +56,7 @@ export const subjects = [
     blurb: "Clear paths through the specification.",
     detail:
       "Targeted support for exam technique and understanding, with a calm grade note: progress is the measure, not panic.",
+    image: "/subject/CGSE.png",
   },
 ];
 
