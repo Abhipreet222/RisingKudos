@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ThreeDSlider, {
@@ -57,6 +58,31 @@ export default function WhyChoose() {
   const sectionRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<ThreeDSliderHandle>(null);
+
+  // ── Lightbox state ─────────────────────────────────────────────────────────
+  const [lightbox, setLightbox] = useState<SliderItemData | null>(null);
+
+  const openLightbox = useCallback((item: SliderItemData) => {
+    setLightbox(item);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    setLightbox(null);
+  }, []);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeLightbox(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox, closeLightbox]);
+
+  // Prevent body scroll while open
+  useEffect(() => {
+    document.body.style.overflow = lightbox ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [lightbox]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -128,6 +154,7 @@ export default function WhyChoose() {
               disableWheel={true}
               speedDrag={-0.18}
               className="rounded-none bg-transparent"
+              onItemClick={openLightbox}
             />
           </div>
         </div>
@@ -138,6 +165,59 @@ export default function WhyChoose() {
         </p>
       </div>
       </div>
+
+      {/* ── Lightbox Modal ─────────────────────────────────────────────────── */}
+      {lightbox && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={lightbox.title}
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          style={{ animation: "rkd-lb-in 0.22s ease" }}
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={closeLightbox}
+          />
+
+          {/* Image container */}
+          <div
+            className="relative z-10 flex max-h-[90vh] max-w-[92vw] flex-col items-center"
+            style={{ animation: "rkd-lb-scale 0.25s cubic-bezier(.22,.68,0,1.2)" }}
+          >
+            {/* Close button */}
+            <button
+              onClick={closeLightbox}
+              aria-label="Close image"
+              className="absolute -top-3 -right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-ink shadow-lg backdrop-blur transition hover:scale-110 hover:bg-white"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+
+            <div className="relative overflow-hidden rounded-2xl shadow-2xl" style={{ maxHeight: "86vh", maxWidth: "88vw" }}>
+              <Image
+                src={lightbox.imageUrl}
+                alt={lightbox.title}
+                width={1200}
+                height={1600}
+                className="block h-auto w-auto object-contain"
+                style={{ maxHeight: "86vh", maxWidth: "88vw" }}
+                priority
+              />
+            </div>
+
+            <p className="mt-3 text-sm font-semibold text-white drop-shadow">{lightbox.title}</p>
+          </div>
+
+          <style>{`
+            @keyframes rkd-lb-in  { from { opacity:0 } to { opacity:1 } }
+            @keyframes rkd-lb-scale{ from { opacity:0; transform:scale(.92) } to { opacity:1; transform:scale(1) } }
+          `}</style>
+        </div>
+      )}
     </section>
   );
 }
