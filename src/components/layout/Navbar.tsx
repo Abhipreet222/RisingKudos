@@ -30,10 +30,10 @@ export default function Navbar() {
       >
         <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
           <Image
-            src="/logo.png"
+            src="/logo_1.png"
             alt="Rising Kudos logo"
-            width={scrolled ? 42 : 52}
-            height={scrolled ? 42 : 52}
+            width={scrolled ? 74 : 92}
+            height={scrolled ? 74 : 92}
             priority
             className="transition-all duration-[400ms] shrink-0"
             style={{ objectFit: "contain" }}

@@ -169,10 +169,10 @@ export default function PageLoader() {
     >
       {/* ── Rising Kudos Logo ── */}
       <Image
-        src="/logo.png"
+        src="/logo_1.png"
         alt="Rising Kudos logo"
-        width={110}
-        height={110}
+        width={200}
+        height={200}
         priority
         style={{ marginTop: "48px", marginBottom: "24px", objectFit: "contain" }}
       />
