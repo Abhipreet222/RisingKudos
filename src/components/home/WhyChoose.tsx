@@ -43,11 +43,6 @@ const WHY_ITEMS: SliderItemData[] = [
     title: "Parents Always in the Loop",
     imageUrl: "/carousal cards/why6.png",
   },
-  {
-    num: "07",
-    title: "No Pressure, Just Progress",
-    imageUrl: "/carousal cards/why7.png",
-  },
 ];
 
 // One viewport height of scroll per card transition feels natural

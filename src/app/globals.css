@@ -294,3 +294,65 @@ h3,
   animation: glow-sweep 2.4s linear infinite;
   box-shadow: 0 0 10px 2px rgba(224,122,95,0.55);
 }
+
+/* ── Beam-border card (Google AI Studio style) ─────────────────────────── */
+@keyframes beam-rotate {
+  0%   { --beam-angle: 0deg; }
+  100% { --beam-angle: 360deg; }
+}
+
+@property --beam-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.beam-card-outer {
+  position: relative;
+  border-radius: var(--card-radius, 1.25rem);
+  /* The beam is painted by beam-card-beam child */
+}
+
+/* The glowing beam layer — a rotating conic-gradient */
+.beam-card-beam {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border-radius: var(--card-radius, 1.25rem);
+  z-index: 0;
+  background: conic-gradient(
+    from var(--beam-angle),
+    /* orange/amber cluster */
+    transparent 0deg,
+    rgba(250,140,80,0.0)  20deg,
+    rgba(250,140,80,0.55) 38deg,
+    rgba(255,200,100,0.9) 50deg,
+    rgba(234,100,60,0.85) 62deg,
+    rgba(250,140,80,0.4)  80deg,
+    transparent           110deg,
+    /* gap */
+    transparent           150deg,
+    /* blue/cyan cluster */
+    rgba(80,160,255,0.0)  160deg,
+    rgba(80,160,255,0.55) 178deg,
+    rgba(140,210,255,0.9) 190deg,
+    rgba(60,130,230,0.85) 202deg,
+    rgba(80,160,255,0.4)  220deg,
+    transparent           250deg,
+    /* back to start */
+    transparent           360deg
+  );
+  animation: beam-rotate 3s linear infinite;
+  /* soft outer glow */
+  filter: blur(0px);
+}
+
+/* The white card sits 2 px inset, on top of the beam */
+.beam-card-inner {
+  position: relative;
+  z-index: 1;
+  margin: 2px;
+  box-shadow:
+    0 20px 60px rgba(224,122,95,0.18),
+    0 8px  24px rgba(43,36,31,0.10);
+}

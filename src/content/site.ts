@@ -125,8 +125,8 @@ export const packages = [
   {
     id: "weekly",
     name: "Weekly rhythm",
-    price: "From £48",
-    period: "per session",
+    price: "From £49",
+    period: "",
     highlight: false,
     points: [
       "Ongoing weekly slot",
@@ -138,24 +138,23 @@ export const packages = [
   {
     id: "intro",
     name: "Intro package",
-    price: "From £89",
-    period: "first 4 sessions",
+    price: "€99",
+    period: "",
     highlight: true,
     points: [
       "Free parent consultation",
       "Tutor meet-and-greet",
-      "Four 55-minute sessions",
+      "Four 1-hour sessions",
       "Written progress note",
     ],
   },
   {
     id: "focused",
     name: "Focused block",
-    price: "From £260",
-    period: "6-session block",
+    price: "€649",
+    period: "",
     highlight: false,
     points: [
-      "Short-term boost",
       "Topic-mapped plan",
       "11+ or GCSE options",
       "End-of-block review",

@@ -1,135 +1,156 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import gsap from "gsap";
 
 /**
- * Full-screen branded preloader — matches the Rising Kudos design:
- *  • Cream background (matches site)
- *  • Rising Kudos SVG logo (sun rays + plant/leaf mark)
- *  • "RISING KUDOS" bold uppercase heading
- *  • "PREPARING YOUR EXPERIENCE" subtitle
- *  • Horizontal progress bar (coral fill, cream track)
- *  • Accurate percentage counter driven by GIF decode progress
+ * Full-screen branded preloader — matches the Rising Kudos design.
+ *
+ * Shows on:
+ *  1. First hard load of ANY page   (useEffect with [] deps — StrictMode-safe)
+ *  2. Client-side navigation TO "/" from a different page (back button etc.)
+ *
+ * Does NOT show when leaving "/" to go to another page.
  *
  * Progress is driven by `page:progress` CustomEvent (detail: 0–1) dispatched
- * by ScrollGifBackground as each frame is decoded. A rAF interpolation loop
- * ensures smooth, always-moving visuals even before first event arrives.
- * Loader exits on `page:ready` (or after 12 s fallback).
+ * by ScrollGifBackground. Loader exits on `page:ready` or 12 s fallback.
  */
 
-const ARC_CIRC = 2 * Math.PI * 54;
-
 export default function PageLoader() {
-  const overlayRef   = useRef<HTMLDivElement>(null);
-  const barFillRef   = useRef<HTMLDivElement>(null);
-  const percentRef   = useRef<HTMLSpanElement>(null);
-  const exitedRef    = useRef(false);
-  const realPctRef   = useRef(0);   // actual GIF decode progress 0-1
-  const displayRef   = useRef(0);   // smoothly interpolated display value
-  const rafRef       = useRef<number | null>(null);
+  const pathname = usePathname();
 
-  useEffect(() => {
-    // Lock scroll
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const barFillRef = useRef<HTMLDivElement>(null);
+  const percentRef = useRef<HTMLSpanElement>(null);
+
+  // Activation state — stable refs, no React re-renders
+  const exitedRef  = useRef(false);
+  const realPctRef = useRef(0);
+  const displayRef = useRef(0);
+  const rafRef     = useRef<number | null>(null);
+  const killRef    = useRef<(() => void) | null>(null);
+
+  // ── write progress to DOM without re-render ─────────────────────────────
+  function applyDisplay(v: number) {
+    displayRef.current = v;
+    if (barFillRef.current) barFillRef.current.style.width = `${(v * 100).toFixed(1)}%`;
+    if (percentRef.current) percentRef.current.textContent = `${Math.round(v * 100)}%`;
+  }
+
+  function showOverlay() {
+    const el = overlayRef.current;
+    if (!el) return;
+    gsap.killTweensOf(el);
+    el.style.display = "flex";
+    el.style.opacity = "1";
+  }
+
+  // ── core activation logic ────────────────────────────────────────────────
+  function activate(isHome: boolean) {
+    // Tear down any previous in-flight activation
+    killRef.current?.();
+
+    exitedRef.current  = false;
+    realPctRef.current = 0;
+    displayRef.current = 0;
+    applyDisplay(0);
+    showOverlay();
     document.body.style.overflow = "hidden";
 
-    /** Write display progress to DOM elements directly (no React re-render) */
-    function applyDisplay(v: number) {
-      displayRef.current = v;
-      if (barFillRef.current) {
-        barFillRef.current.style.width = `${(v * 100).toFixed(1)}%`;
-      }
-      if (percentRef.current) {
-        percentRef.current.textContent = `${Math.round(v * 100)}%`;
-      }
-    }
-
-    /** rAF loop: smoothly chase real progress; drift up slowly when events
-     *  haven't arrived yet (fake progress caps at 88 %) */
+    // Smooth progress chase loop
     function tick() {
       const real    = realPctRef.current;
       const display = displayRef.current;
-      // Target: if we have real signal, chase it; else drift toward 88%
       const target  = real > 0 ? real : Math.min(0.88, display + 0.0012);
       const next    = display + (target - display) * 0.055;
-
-      if (Math.abs(next - display) > 0.0002) {
-        applyDisplay(next);
-      }
+      if (Math.abs(next - display) > 0.0002) applyDisplay(next);
       rafRef.current = requestAnimationFrame(tick);
     }
     rafRef.current = requestAnimationFrame(tick);
-
-    /** Called by ScrollGifBackground on every decoded frame */
-    function onProgress(e: Event) {
-      realPctRef.current = (e as CustomEvent<number>).detail;
-    }
 
     function exit() {
       if (exitedRef.current) return;
       exitedRef.current = true;
       document.body.style.overflow = "";
-
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-
-      applyDisplay(1); // snap to 100% visually
-
+      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+      applyDisplay(1);
       const overlay = overlayRef.current;
       if (!overlay) return;
-
       gsap.to(overlay, {
         delay: 0.45,
         opacity: 0,
         duration: 0.65,
         ease: "power2.inOut",
-        onComplete: () => {
-          if (overlay) overlay.style.display = "none";
-        },
+        onComplete: () => { if (overlay) overlay.style.display = "none"; },
       });
     }
 
-    // Minimum time the loader must stay visible (so it's always seen)
-    const MIN_MS = 2000;
-    const mountedAt = Date.now();
+    const MIN_MS    = isHome ? 2000 : 800;
+    const startedAt = Date.now();
     let readyPending = false;
 
-    function exitWhenReady() {
-      const elapsed = Date.now() - mountedAt;
-      const remaining = Math.max(0, MIN_MS - elapsed);
-      setTimeout(exit, remaining);
-    }
-
+    function onProgress(e: Event) { realPctRef.current = (e as CustomEvent<number>).detail; }
     function onReady() {
       if (readyPending) return;
       readyPending = true;
-      exitWhenReady();
+      const remaining = Math.max(0, MIN_MS - (Date.now() - startedAt));
+      setTimeout(exit, remaining);
     }
 
     window.addEventListener("page:progress", onProgress);
-    window.addEventListener("page:ready", onReady);
+    window.addEventListener("page:ready",    onReady);
 
-    // Hard fallback — never trap user for more than 12 s
-    const fallback = setTimeout(exit, 12_000);
+    const hardFallback = setTimeout(exit, 12_000);
+    const quickExit    = isHome ? null : setTimeout(exit, 1200);
 
-    // Non-home pages have no GIF → exit quickly
-    const isHome = window.location.pathname === "/";
-    let quick: ReturnType<typeof setTimeout> | null = null;
-    if (!isHome) quick = setTimeout(exit, 1200);
-
-    return () => {
+    killRef.current = () => {
       window.removeEventListener("page:progress", onProgress);
-      window.removeEventListener("page:ready", onReady);
-      clearTimeout(fallback);
-      if (quick) clearTimeout(quick);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      window.removeEventListener("page:ready",    onReady);
+      clearTimeout(hardFallback);
+      if (quickExit) clearTimeout(quickExit);
+      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
       document.body.style.overflow = "";
     };
+  }
+
+  // ── Effect 1: First hard load ────────────────────────────────────────────
+  // Empty deps → runs once on mount. Uses window.location (not pathname prop)
+  // so it works even if pathname hasn't resolved yet. StrictMode-safe because
+  // activate() is idempotent and teardown is clean.
+  useEffect(() => {
+    const isHome = window.location.pathname === "/";
+    activate(isHome);
+    return () => { killRef.current?.(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Effect 2: Client-side back-navigation TO "/" ─────────────────────────
+  // Skips the very first render (that's handled by Effect 1 above).
+  // Only activates when user navigates TO "/" from a different page.
+  const mountedRef  = useRef(false);
+  const prevPathRef = useRef<string>("/");
+
+  useEffect(() => {
+    // Skip first render — Effect 1 already handled it
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      prevPathRef.current = pathname;
+      return;
+    }
+
+    const prev = prevPathRef.current;
+    prevPathRef.current = pathname;
+
+    // Show ONLY when arriving at "/" from a different page
+    if (pathname === "/" && prev !== "/") {
+      activate(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  // ────────────────────────────────────────────────────────────────────────────
   return (
     <div
       ref={overlayRef}
@@ -197,7 +218,6 @@ export default function PageLoader() {
           marginBottom: "10px",
         }}
       >
-        {/* Fill — width driven by rAF loop via barFillRef */}
         <div
           ref={barFillRef}
           style={{
